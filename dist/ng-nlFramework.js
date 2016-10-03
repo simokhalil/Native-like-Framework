@@ -18,14 +18,16 @@ angular.module('nlFramework', [])
       $nlConfig.deviceW = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       $nlConfig.deviceH = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
       // get body reference
-      $nlElements.body = document.body;
+		// J'ai modifié ici document.body par document.getElementById('nlContent');
+		// pour que le dimm ne soit présent que  dans le content
+      $nlElements.body = document.getElementById('nlContent');
       $nlElements.bodyH = new Hammer($nlElements.body);
       // add burger menu icon
       if( config.burger && config.burger.use ){
           $nlBurger.init();
       }
       // add dimmer
-      document.body.insertAdjacentHTML( 'beforeend', '<div id="nlDimm"></div>' );
+	  $nlElements.body.insertAdjacentHTML( 'beforeend', '<div id="nlDimm"></div>' );
       $nlElements.drawerDimm = document.getElementById( 'nlDimm' );
       $nlElements.drawerDimmH = new Hammer($nlElements.drawerDimm);
       // add toast refresh
@@ -34,7 +36,7 @@ angular.module('nlFramework', [])
       }
       // add swipe element
       if( config.drawer ){
-        document.body.insertAdjacentHTML( 'beforeend', '<div id="nlSwipe"></div>' );
+        $nlElements.body.insertAdjacentHTML( 'beforeend', '<div id="nlSwipe"></div>' );
         $nlDrawer.init(config.drawer);
       }
       // add toast container
@@ -221,19 +223,13 @@ angular.module('nlFramework', [])
         }
         //
         $nlElements.burger.style.transition = 'none';
-        $nlElements.burgerTop.style.transition = 'none';
-        $nlElements.burgerBottom.style.transition = 'none';
         //
-        $nlHelpers.translate( $nlElements.burger, 0, '', 0, '', rotateComplete, '', '' );
-        $nlHelpers.translate( $nlElements.burgerTop, 0, '', y_pos, '', rotate, '', '', scale );
-        $nlHelpers.translate( $nlElements.burgerBottom, 0, '', y_pos, '-', rotate, '-', '', scale );
+        //$nlHelpers.translate( $nlElements.burger, 0, '', 0, '', rotateComplete, '', '' );
       }
     },
     toggle: function( toggle ){
       // set transitions length for animation
       $nlElements.burger.style.transition = 'all '+$nlConfig.options.speed+'s '+$nlConfig.options.animation;
-      $nlElements.burgerTop.style.transition = 'all '+$nlConfig.options.speed+'s '+$nlConfig.options.animation;
-      $nlElements.burgerBottom.style.transition = 'all '+$nlConfig.options.speed+'s '+$nlConfig.options.animation;
       //
       if ( toggle || (toggle && !nlBurger.isOn) ){
         // ON
@@ -246,8 +242,6 @@ angular.module('nlFramework', [])
     toggleEnd: function(){
       setTimeout( function(){
         $nlElements.burger.style.transition = 'none';
-        $nlElements.burgerTop.style.transition = 'none';
-        $nlElements.burgerBottom.style.transition = 'none';
         if (!nlBurger.isOn){
           $nlHelpers.translate( $nlElements.burger, 0, '', 0, '-', 0, '' );
           $nlConfig.options.reverse = false;
@@ -257,16 +251,12 @@ angular.module('nlFramework', [])
       }, $nlConfig.options.speed*1000 );
     },
     setOn: function(){
-      $nlHelpers.translate( $nlElements.burgerTop, 0, '', $nlConfig.options.burger.endY, '', 45, '', '', $nlConfig.options.burger.endScale );
-      $nlHelpers.translate( $nlElements.burgerBottom, 0, '', $nlConfig.options.burger.endY, '-', 45, '-', '', $nlConfig.options.burger.endScale );
       $nlHelpers.translate( $nlElements.burger, 0, '', 0, '-', 180, '' );
       nlBurger.isOn = true;
       // reset burger state after the animation is done
       nlBurger.toggleEnd();
     },
     setOff: function(){
-      $nlHelpers.translate( $nlElements.burgerTop, 0, '', 0, '', 0, '', '', $nlConfig.options.burger.startScale );
-      $nlHelpers.translate( $nlElements.burgerBottom, 0, '', 0, '', 0, '', '', $nlConfig.options.burger.startScale );
       if ( $nlConfig.options.reverse ){
         $nlHelpers.translate( $nlElements.burger, 0, '', 0, '-', 360, '' );
       }else{
@@ -278,17 +268,16 @@ angular.module('nlFramework', [])
     },
     init: function(){
       // burger elements
-        var burger = '<div id="nlBurger"><div id="burger-top"></div><div id="burger-center"></div><div id="burger-bottom"></div></div>';
-        if( document.getElementById( 'nlBurger' ) === null ) document.body.insertAdjacentHTML( 'beforeend', burger );
+        var burger = '<div id="nlBurger"><i class="icon ion-navicon" style="line-height: 50px;"></i></div>';
+        if( document.getElementById( 'nlBurger' ) === null ) $nlElements.body.insertAdjacentHTML( 'beforeend', burger );
         //
         $nlElements.burger = document.getElementById( 'nlBurger' );
-        $nlElements.burgerH = new Hammer($nlElements.burger);
-        $nlElements.burgerTop = document.getElementById( 'burger-top' );
-        $nlElements.burgerBottom = document.getElementById( 'burger-bottom' );
+        $nlElements.burgerH = new Hammer.Manager($nlElements.burger);
+		$nlElements.burgerH.add( new Hammer.Tap({ threshold: 10 }) );
         if( typeof $nlConfig.options.drawer !== 'object' ){
-          $nlElements.burgerH.on("tap", function(ev) {
-            nlBurger.toggle();
-          });
+			$nlElements.burgerH.on("tap press", function(ev) {
+				nlBurger.toggle();
+			});
         }
     }
   }
@@ -327,9 +316,15 @@ angular.module('nlFramework', [])
         $nlElements.drawerH.on("tap", function(ev) {
           nlDrawer.hide();
         });
+		$nlElements.drawerH.on("press", function(ev) {
+			nlDrawer.hide();
+		});
         $nlElements.drawerDimmH.on("tap", function(ev) {
           nlDrawer.hide();
         });
+		$nlElements.drawerDimmH.on("press", function(ev) {
+			nlDrawer.hide();
+		});
         if($nlConfig.options.burger ){
           if($nlConfig.options.burger.use ){
             $nlElements.burgerH.on("tap", function(ev) {
@@ -806,7 +801,6 @@ angular.module('nlFramework', [])
     init: function(){
       $nlElements.actionPanel = document.getElementById('nlActionButton');
       $nlElements.actionPanelH = new Hammer($nlElements.actionPanel);
-      $nlElements.actionPlus = document.getElementById('nlPlus');
       $nlElements.actionPlusH = new Hammer($nlElements.actionPlus);
       $nlElements.actionPanelH.on("tap", function(ev) {
         if( !$nlElements.actionPlus.hasAttribute("ng-click") ){
