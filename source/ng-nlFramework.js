@@ -318,7 +318,7 @@ angular.module('nlFramework', [])
           $nlElements.drawerH = new Hammer.Manager($nlElements.drawer);
           $nlElements.drawerH.add( new Hammer.Tap({ time:1000, threshold: 20 }) );
           $nlElements.drawerH.add( new Hammer.Press({ time:1000, threshold: 20 }) );
-          $nlElements.drawerDimmH = new Hammer.Manager($nlElements.drawer);
+          $nlElements.drawerDimmH = new Hammer.Manager($nlElements.drawerDimm);
           $nlElements.drawerDimmH.add( new Hammer.Tap({ time:1000, threshold: 20 }) );
           $nlElements.drawerDimmH.add( new Hammer.Press({ time:1000, threshold: 20 }) );
 
